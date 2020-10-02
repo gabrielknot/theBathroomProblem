@@ -15,6 +15,8 @@ typedef struct{
 sem_t total_boxes;
 
 sem_t gender_mutex;
+
+pthread_mutex_t mutex;
 unsigned short int current_gender;
 
 void delay(int secs) { //utility function
@@ -47,21 +49,25 @@ void *bathroom(void *philo) {
   people *peop_cast = (people*)philo;
   int free_boxes;
   
-  
+  pthread_mutex_lock(&mutex);
   if(current_gender!=peop_cast->gender){
+    delay(rand() % 5);
     printf("Im the %s #%d, the bathroom is %s's avaliable for while...\n",getGender(peop_cast->gender),peop_cast->id,getGender(!peop_cast->gender));
     sem_wait(&gender_mutex);
     printf("\nThe %s #%d - Boxes are free for my gender. Finaly i can change get in\n",getGender(peop_cast->gender),peop_cast->id);
     current_gender=!current_gender;
   }
+  pthread_mutex_unlock(&mutex);
   
   sem_wait(&total_boxes);
   poopiing(peop_cast);
 
+  pthread_mutex_lock(&mutex);
   sem_getvalue(&total_boxes,&free_boxes);
   if(free_boxes==QTD_OF_BOXES){
     sem_post(&gender_mutex);
     }
+  pthread_mutex_unlock(&mutex);
   
   return philo;
 }
@@ -74,6 +80,7 @@ people* peoples = (people *) malloc(sizeof(people)*QTD_OF_PEOPLE);
 
   sem_init(&total_boxes,0,QTD_OF_BOXES);
   sem_init(&gender_mutex,0,0);
+  pthread_mutex_init(&mutex);
 
   pthread_t people_thrds[QTD_OF_PEOPLE]; //Data strs form managing several threads
 
@@ -97,5 +104,6 @@ people* peoples = (people *) malloc(sizeof(people)*QTD_OF_PEOPLE);
   free(peoples);
   sem_destroy(&total_boxes);
   sem_destroy(&gender_mutex);
+  pthread_mutex_destroy(&mutex);
   pthread_attr_destroy(&attr);
 }
