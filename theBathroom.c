@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include<semaphore.h>
 
-#define QTD_OF_PEOPLE 10
+#define QTD_OF_PEOPLE 20
 #define QTD_OF_BOXES 5
 
 int sharedData = 0; 
@@ -50,13 +50,10 @@ void *bathroom(void *philo) {
   int free_boxes;
   
   if(current_gender!=peop_cast->gender){
-    delay(rand() % 5);
     printf("Im the %s #%d, the bathroom is %s's avaliable for while...\n",getGender(peop_cast->gender),peop_cast->id,getGender(!peop_cast->gender));
     sem_wait(&gender_mutex);
-    pthread_mutex_lock(&mutex);
     printf("\nThe %s #%d - Boxes are free for my gender. Finaly i can change get in\n",getGender(peop_cast->gender),peop_cast->id);
-    current_gender=!current_gender;
-    pthread_mutex_unlock(&mutex);
+    current_gender=peop_cast->gender;
   }
   
   sem_wait(&total_boxes);
